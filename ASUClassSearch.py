@@ -1,4 +1,4 @@
-import RateMyProfessorAPI, requests, re
+import RateMyProfAPI, requests, re
 
 class ASUClassFinder:
     def __init__(self, major, code):
