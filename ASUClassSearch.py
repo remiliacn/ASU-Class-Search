@@ -1,4 +1,5 @@
 import RateMyProfAPI, requests, re
+from lxml import etree
 
 class ASUClassFinder:
     def __init__(self, major, code):
