@@ -1,3 +1,5 @@
+import RateMyProfessorAPI, requests, re
+
 class ASUClassFinder:
     def __init__(self, major, code):
         self.major = major
@@ -46,7 +48,7 @@ class ASUClassFinder:
                     else:
                         instructorFull = "staff"
 
-                    print(instructorFull)
+                    print(instructorFull)                   #For debugging purpose, can be ignored.
 
                     ASU = RateMyProfAPI(teacher=instructorFull)
                     ASU.retrieveRMPInfo()
