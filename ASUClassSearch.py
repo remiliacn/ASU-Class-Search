@@ -31,7 +31,7 @@ class ASUClassFinder:
                     seatsOpenString = str(available.xpath('//*[@id="informal"]/td[11]/div/div[1]/text()'))
                     seatsOpen = re.findall(r'\d+', seatsOpenString)[0]
                     instructor = str(available.xpath('//*[@id="DirectLink"]/span/text()'))
-                    instructorFullString = re.findall(r'<a id="DirectLink" title="Instructor\|.*?"', self.Page.text)
+                    instructorFullString = re.findall(r'<a id="DirectLink" title="Instructor\|(.*?)"', self.Page.text)
 
                     if instructor == "[]":
                         inst = "staff"
@@ -40,16 +40,11 @@ class ASUClassFinder:
                         inst = re.findall(r'[^\\t]\w+', instructor)[0]
 
                     if len(instructorFullString) > 0:
-                        instructorFullString = str(instructorFullString[0])
-                    else:
-                        instructorFullString = ""
-
-                    if instructorFullString != "":
-                        instructorFull = re.findall(r'\w{2,}\s\w+', instructorFullString)[0]
+                        instructorFull = str(instructorFullString[0])
                     else:
                         instructorFull = "staff"
 
-                    print(instructorFull)                   #For debugging purpose, can be ignored.
+                    print(instructorFull)
 
                     ASU = RateMyProfAPI(teacher=instructorFull)
                     ASU.retrieveRMPInfo()
@@ -66,7 +61,7 @@ class ASUClassFinder:
                     seatsOpen = re.findall(r'\d+', seatsOpenString)[0]
                     instructor = str(available.xpath('//*[@id="DirectLink_%s"]/span/text()' % (str(count - 1))))
                     instructorFullString = re.findall(
-                        r'<a id="DirectLink_%s" title="Instructor\|.*?"' % (str(count - 1)),
+                        r'<a id="DirectLink_%s" title="Instructor\|(.*?)"' % (str(count - 1)),
                         self.Page.text)
 
                     if instructor == "[]":
@@ -76,12 +71,7 @@ class ASUClassFinder:
                         inst = re.findall(r'[^\\t]\w+', instructor)[0]
 
                     if len(instructorFullString) > 0:
-                        instructorFullString = str(instructorFullString[0])
-                    else:
-                        instructorFullString = ""
-
-                    if instructorFullString != "":
-                        instructorFull = re.findall(r'\w{2,}\s\w+', instructorFullString)[0]
+                        instructorFull = str(instructorFullString[0])
                     else:
                         instructorFull = "staff"
 
@@ -96,6 +86,6 @@ class ASUClassFinder:
                                 (classNumber, seatsOpen, inst, firstTag, str(rating))
 
         else:
-            response = "Oops, no result was found."
+            response = "Oops, no information available."
 
         return response
