@@ -5,7 +5,8 @@ class ASUClassFinder:
     def __init__(self, major, code):
         self.major = major
         self.code = code
-        self.baseUrl = "https://webapp4.asu.edu/catalog/myclasslistresults?t=2201&s=%s&n=%s&hon=F&promod=F&e=open&page=1" % (major, code)
+        #updated to Fall 2020's schedule.
+        self.baseUrl = "https://webapp4.asu.edu/catalog/myclasslistresults?t=2207&s=%s&n=%s&hon=F&promod=F&e=open&page=1" % (major, code)
         self.Page = self._getPage()
         self.totalResult = self.getElementsCount()
 
