@@ -1,5 +1,25 @@
-import RateMyProfAPI, requests, re
+import RMPClass, requests, re
 from lxml import etree
+
+
+def generateResponse(instructor: list, instructorFullNode: list, classNumber: str, seatsOpen: str):
+    response = ''
+    if instructorFullNode:
+        instructorFull = instructorFullNode[0]
+    else:
+        instructorFull = "staff"
+
+    print(instructorFull)       # debug.
+
+    ASU = RMPClass.RateMyProfAPI(teacher=instructorFull)
+    ASU.retrieveRMPInfo()
+    rating = ASU.getRMPInfo()
+    firstTag = ASU.getFirstTag()
+
+    response += "Class Code：%s\tSeats Left：%s\tInstructor：%s\tHottest Tag：%s\tRMP Rating：%s\n" % \
+                (classNumber, seatsOpen, instructorFull, firstTag, str(rating))
+
+    return response
 
 class ASUClassFinder:
     def __init__(self, major, code):
@@ -11,82 +31,60 @@ class ASUClassFinder:
         self.totalResult = self.getElementsCount()
 
     def _getPage(self):
-        res = requests.get(self.baseUrl, headers=headers)
+        res = requests.get(self.baseUrl, headers=RMPClass.headers)
         return res
 
     def getElementsCount(self):
-        available = etree.HTML(self.Page.text)
-        everyThing = str(available.xpath('//*[@id="classResults"]/div[3]/div/text()'))
-        totalResults = re.findall(r'of \d+', everyThing)[0]
+        document = etree.HTML(self.Page.text)
+        fullName = str(document.xpath('//*[@id="classResults"]/div[3]/div/text()'))
+        totalResults = re.findall(r'of \d+', fullName)[0]
         totalResult = int(re.findall(r'\d+', totalResults)[0])
         return totalResult
 
     def __str__(self):
         response = ""
-        available = etree.HTML(self.Page.text)
+        document = etree.HTML(self.Page.text)
         if self.totalResult > 0:
             for count in range(0, self.totalResult):
-                if count == 0:
-                    classNumberString = str(available.xpath('//*[@id="Any_13"]/text()'))
-                    classNumber = re.findall(r'\d+', classNumberString)[0]
-                    seatsOpenString = str(available.xpath('//*[@id="informal"]/td[11]/div/div[1]/text()'))
-                    seatsOpen = re.findall(r'\d+', seatsOpenString)[0]
-                    instructor = str(available.xpath('//*[@id="DirectLink"]/span/text()'))
-                    instructorFullString = re.findall(r'<a id="DirectLink" title="Instructor\|(.*?)"', self.Page.text)
-
-                    if instructor == "[]":
-                        inst = "staff"
-
-                    else:
-                        inst = re.findall(r'[^\\t]\w+', instructor)[0]
-
-                    if len(instructorFullString) > 0:
-                        instructorFull = str(instructorFullString[0])
-                    else:
-                        instructorFull = "staff"
-
-                    print(instructorFull)
-
-                    ASU = RateMyProfAPI(teacher=instructorFull)
-                    ASU.retrieveRMPInfo()
-                    rating = ASU.getRMPInfo()
-                    firstTag = ASU.getFirstTag()
-
-                    response += "Class Code：%s\tSeats Left：%s\tInstructor：%s\tHottest Tag：%s\tRMP Rating：%s\n" % \
-                                (classNumber, seatsOpen, inst, firstTag, str(rating))
-                else:
-                    classNumberString = str(available.xpath('//*[@id="Any_13_%s"]/text()' % (str(count - 1))))
-                    classNumber = re.findall(r'\d+', classNumberString)[0]
-                    seatsOpenString = str(
-                        available.xpath('//*[@id="informal_%s"]/td[11]/div/div[1]/text()' % (str(count - 1))))
-                    seatsOpen = re.findall(r'\d+', seatsOpenString)[0]
-                    instructor = str(available.xpath('//*[@id="DirectLink_%s"]/span/text()' % (str(count - 1))))
-                    instructorFullString = re.findall(
-                        r'<a id="DirectLink_%s" title="Instructor\|(.*?)"' % (str(count - 1)),
-                        self.Page.text)
-
-                    if instructor == "[]":
-                        inst = "staff"
-
-                    else:
-                        inst = re.findall(r'[^\\t]\w+', instructor)[0]
-
-                    if len(instructorFullString) > 0:
-                        instructorFull = str(instructorFullString[0])
-                    else:
-                        instructorFull = "staff"
-
-                    print(instructorFull)
-
-                    ASU = RateMyProfAPI(teacher=instructorFull)
-                    ASU.retrieveRMPInfo()
-                    rating = ASU.getRMPInfo()
-                    firstTag = ASU.getFirstTag()
-
-                    response += "Class Code：%s\tSeats Left：%s\tInstructor：%s\tHottest Tag：%s\tRMP Rating：%s\n" % \
-                                (classNumber, seatsOpen, inst, firstTag, str(rating))
+                response += self.analyzeURL(count, document)
 
         else:
-            response = "Oops, no information available."
+            response = "Oops, no information document."
 
         return response
+
+    def analyzeURL(self, count: int, available):
+        response = ''
+        if count == 0:
+            classNumberString = available.xpath('//*[@id="Any_13"]/text()')
+            classNumber = re.findall(r'\d+', classNumberString[0])[0]
+
+            seatsOpenString = available.xpath('//*[@id="informal"]/td[11]/div/div[1]/text()')
+            seatsOpen = re.findall(r'\d+', seatsOpenString[0])[0]
+
+            instructor = available.xpath('//*[@id="DirectLink"]/span/text()')
+            instructorFullString = re.findall(r'<a id="DirectLink" title="Instructor\|(.*?)"', self.Page.text)
+
+            response += generateResponse(instructor, instructorFullString, classNumber, seatsOpen)
+
+        else:
+            classNumberString = available.xpath(f'//*[@id="Any_13_{str(count - 1)}"]/text()')
+            classNumber = re.findall(r'\d+', classNumberString[0])[0]
+
+            seatsOpenString = available.xpath(f'//*[@id="informal_{str(count - 1)}"]/td[11]/div/div[1]/text()')
+            seatsOpen = re.findall(r'\d+', seatsOpenString[0])[0]
+
+            instructor = available.xpath(f'//*[@id="DirectLink_{str(count - 1)}"]/span/text()')
+            instructorFullString = re.findall(
+                f'<a id="DirectLink_{str(count - 1)}" title="Instructor\|(.*?)"',
+                self.Page.text
+            )
+
+            response += generateResponse(instructor, instructorFullString, classNumber, seatsOpen)
+
+        return response
+
+
+if __name__ == '__main__':
+    classFinder = ASUClassFinder(major='CSE', code='110')
+    print(classFinder.__str__())
