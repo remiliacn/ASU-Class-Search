@@ -66,7 +66,10 @@ class ASUClassFinder:
             seatsOpenString = available.xpath('//*[@id="informal"]/td[11]/div/div[1]/text()')
             seatsOpen = re.findall(r'\d+', seatsOpenString[0])[0]
 
-            instructorFullString = re.findall(r'<a id="DirectLink" title="Instructor\|(.*?)"', self.Page.text)
+            instructorFullString = re.findall(
+                r'<a id="DirectLink" title="Instructor\|(.*?)"',
+                self.Page.text
+            )
 
             response += generateResponse(instructorFullString, classNumber, seatsOpen)
 
