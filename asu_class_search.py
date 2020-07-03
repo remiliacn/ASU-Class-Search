@@ -6,6 +6,7 @@ import requests
 from lxml import etree
 import rmp_class
 
+
 def generate_response(instructor_full_node: list, class_number: str, seats_open: str):
     """
     Generate response string from input.
@@ -21,7 +22,7 @@ def generate_response(instructor_full_node: list, class_number: str, seats_open:
     else:
         instructor_full = "staff"
 
-    print(instructor_full)       # debug.
+    print(instructor_full)  # debug.
 
     asu = rmp_class.RateMyProfAPI(teacher=instructor_full)
     asu.retrieve_rmp_info()
@@ -33,10 +34,12 @@ def generate_response(instructor_full_node: list, class_number: str, seats_open:
 
     return response
 
+
 class ASUClassFinder:
     """
     ASU class finder class for searching in ASU website for courses.
     """
+
     def __init__(self, major, code):
         """
 
@@ -45,9 +48,9 @@ class ASUClassFinder:
         """
         self.major = major
         self.code = code
-        #updated to Fall 2020's schedule.
+        # updated to Fall 2020's schedule.
         self.base_url = f"https://webapp4.asu.edu/catalog/myclasslistresults?t=2207" \
-                       f"&s={major}&n={code}&hon=F&promod=F&e=open&page=1"
+                        f"&s={major}&n={code}&hon=F&promod=F&e=open&page=1"
 
         self.page = self._get_page()
         self.total_result = self.get_page_count()
