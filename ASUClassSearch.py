@@ -28,13 +28,13 @@ class ASUClassFinder:
         #updated to Fall 2020's schedule.
         self.baseUrl = f"https://webapp4.asu.edu/catalog/myclasslistresults?t=2207&s={major}&n={code}&hon=F&promod=F&e=open&page=1"
         self.Page = self._getPage()
-        self.totalResult = self.getElementsCount()
+        self.totalResult = self.getPageCount()
 
     def _getPage(self):
         res = requests.get(self.baseUrl, headers=RMPClass.headers)
         return res
 
-    def getElementsCount(self):
+    def getPageCount(self):
         document = etree.HTML(self.Page.text)
         fullName = document.xpath('//*[@id="classResults"]/div[3]/div/text()')
         resultNode = re.findall(r'.*?of (\d+)', fullName[0])
@@ -66,7 +66,10 @@ class ASUClassFinder:
             seatsOpenString = available.xpath('//*[@id="informal"]/td[11]/div/div[1]/text()')
             seatsOpen = re.findall(r'\d+', seatsOpenString[0])[0]
 
-            instructorFullString = re.findall(r'<a id="DirectLink" title="Instructor\|(.*?)"', self.Page.text)
+            instructorFullString = re.findall(
+                r'<a id="DirectLink" title="Instructor\|(.*?)"',
+                self.Page.text
+            )
 
             response += generateResponse(instructorFullString, classNumber, seatsOpen)
 
