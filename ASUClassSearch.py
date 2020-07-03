@@ -17,7 +17,7 @@ def generateResponse(instructorFullNode: list, classNumber: str, seatsOpen: str)
     firstTag = ASU.getFirstTag()
 
     response += "Class Code：%s\tSeats Left：%s\tInstructor：%s\tHottest Tag：%s\tRMP Rating：%s\n" % \
-                (classNumber, seatsOpen, instructorFull, firstTag, str(rating))
+                (classNumber, seatsOpen, instructorFull, firstTag, rating)
 
     return response
 
@@ -36,9 +36,13 @@ class ASUClassFinder:
 
     def getElementsCount(self):
         document = etree.HTML(self.Page.text)
-        fullName = str(document.xpath('//*[@id="classResults"]/div[3]/div/text()'))
-        totalResults = re.findall(r'of \d+', fullName)[0]
-        totalResult = int(re.findall(r'\d+', totalResults)[0])
+        fullName = document.xpath('//*[@id="classResults"]/div[3]/div/text()')
+        resultNode = re.findall(r'.*?of (\d+)', fullName[0])
+        if resultNode:
+            totalResult = int(resultNode[0])
+        else:
+            totalResult = 0
+
         return totalResult
 
     def __str__(self):
