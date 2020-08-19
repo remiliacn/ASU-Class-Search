@@ -159,6 +159,8 @@ class RateMyProfAPI:
             else:
                 rating = rating[0]
 
+            return rating
+
         return INFO_NOT_AVAILABLE
 
     def get_rmp_info(self):
