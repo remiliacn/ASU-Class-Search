@@ -85,69 +85,7 @@ class RateMyProfAPI:
 
         if self.index == -1:
             #making request to the RMP page
-            url = f"https://www.ratemyprofessors.com/search.jsp?queryoption=HEADER&" \
-                  f"queryBy=teacherName" \
-                  f"&schoolName={self.school_name}" \
-                  f"&schoolID={self.school_id}&query={self.teacher_name}"
-
-            page = requests.get(url=url, headers=headers)
-            self.page_data = page.text
-            page_data_temp = re.findall(r'ShowRatings\.jsp\?tid=\d+', self.page_data)
-            if page_data_temp:
-                page_data_temp = re.findall(r'ShowRatings\.jsp\?tid=\d+', self.page_data)[0]
-                final_url = "https://www.ratemyprofessors.com/" + page_data_temp
-                self.tag_feed_back = []
-
-                page = requests.get(final_url)
-                document = etree.HTML(page.text)
-
-                # Get tags
-                tags = document.xpath(
-                    '//*[@id="root"]/div/div/'
-                    'div[2]/div[1]/div[1]/div[5]/div[2]/span/text()'
-                )
-
-                if not tags:
-                    self.tag_feed_back = []
-                else:
-                    self.tag_feed_back = tags
-
-                # Get rating
-                self.rating = document.xpath(
-                    '//*[@id="root"]/div/div/'
-                    'div[2]/div[1]/div[1]/div[1]/div[1]/'
-                    'div/div[1]/text()'
-                )[0]
-
-                if re.match(r'.*?N/A', self.rating):
-                    self.rating = INFO_NOT_AVAILABLE
-                else:
-                    self.rating = re.findall(r'\d\.\d', self.rating)
-                    if not self.rating:
-                        self.rating = INFO_NOT_AVAILABLE
-                    else:
-                        self.rating = self.rating[0]
-
-                # Get "Would Take Again" Percentage
-                take_again = document.xpath(
-                    '//*[@id="root"]/div/div/div[2]/div[1]'
-                    '/div[1]/div[3]/div[1]/div[1]/text()'
-                )
-
-                if not take_again:
-                    self.take_again = INFO_NOT_AVAILABLE
-                else:
-                    take_again = re.findall(r'\d+%', take_again[0])
-                    if not take_again:
-                        self.take_again = INFO_NOT_AVAILABLE
-                    else:
-                        self.take_again = take_again[0]
-
-            else:
-                self.rating = INFO_NOT_AVAILABLE
-                self.take_again = INFO_NOT_AVAILABLE
-                self.tag_feed_back = []
-
+            self._retrieve_rmp_info()
             RATING_LIST.append(self.rating)
             TAKE_AGAIN_LIST.append(self.take_again)
             TAG_FEEDBACK_LIST.append(self.tag_feed_back)
@@ -156,6 +94,72 @@ class RateMyProfAPI:
             self.rating = RATING_LIST[self.index]
             self.take_again = TAKE_AGAIN_LIST[self.index]
             self.tag_feed_back = TAG_FEEDBACK_LIST[self.index]
+
+    def _retrieve_rmp_info(self):
+        url = f"https://www.ratemyprofessors.com/search.jsp?queryoption=HEADER&" \
+              f"queryBy=teacherName" \
+              f"&schoolName={self.school_name}" \
+              f"&schoolID={self.school_id}&query={self.teacher_name}"
+
+        page = requests.get(url=url, headers=headers)
+        self.page_data = page.text
+        page_data_temp = re.findall(r'ShowRatings\.jsp\?tid=\d+', self.page_data)
+        if page_data_temp:
+            page_data_temp = re.findall(r'ShowRatings\.jsp\?tid=\d+', self.page_data)[0]
+            final_url = "https://www.ratemyprofessors.com/" + page_data_temp
+            self.tag_feed_back = []
+
+            page = requests.get(final_url)
+            document = etree.HTML(page.text)
+
+            # Get tags
+            tags = document.xpath(
+                '//*[@id="root"]/div/div/'
+                'div[2]/div[1]/div[1]/div[5]/div[2]/span/text()'
+            )
+
+            if not tags:
+                self.tag_feed_back = []
+            else:
+                self.tag_feed_back = tags
+
+            # Get rating
+            self.rating = self._get_rating(document)
+            # Get "Would Take Again" Percentage
+            take_again = document.xpath(
+                '//*[@id="root"]/div/div/div[2]/div[1]'
+                '/div[1]/div[3]/div[1]/div[1]/text()'
+            )
+
+            if not take_again:
+                self.take_again = INFO_NOT_AVAILABLE
+            else:
+                take_again = re.findall(r'\d+%', take_again[0])
+                if not take_again:
+                    self.take_again = INFO_NOT_AVAILABLE
+                else:
+                    self.take_again = take_again[0]
+
+        else:
+            self.rating = INFO_NOT_AVAILABLE
+            self.take_again = INFO_NOT_AVAILABLE
+            self.tag_feed_back = []
+
+    def _get_rating(self, document) -> str:
+        rating = document.xpath(
+            '//*[@id="root"]/div/div/'
+            'div[2]/div[1]/div[1]/div[1]/div[1]/'
+            'div/div[1]/text()'
+        )[0]
+
+        if not re.match(r'.*?N/A', self.rating):
+            rating = re.findall(r'\d\.\d', rating)
+            if not rating:
+                rating = INFO_NOT_AVAILABLE
+            else:
+                rating = rating[0]
+
+        return INFO_NOT_AVAILABLE
 
     def get_rmp_info(self):
         """
