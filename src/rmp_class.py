@@ -147,9 +147,7 @@ class RateMyProfAPI:
 
     def _get_rating(self, document) -> str:
         rating = document.xpath(
-            '//*[@id="root"]/div/div/'
-            'div[2]/div[1]/div[1]/div[1]/div[1]/'
-            'div/div[1]/text()'
+            '//*[@id="root"]/div/div/div[3]/div[1]/div[1]/div[1]/div[1]/div/div[1]/text()'
         )[0]
 
         if not re.match(r'.*?N/A', self.rating):

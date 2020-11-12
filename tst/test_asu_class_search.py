@@ -8,7 +8,7 @@ INFO_NOT_AVAILABLE = "Oops, no information document."
 class MyTestCase(unittest.TestCase):
     def test_generate_response(self):
         mock_instruction_node = ['Yinong Chen']
-        mock_class_number = '76555'
+        mock_class_number = '76545'
         mock_seats_open = '15'
 
         resp = generate_response(
